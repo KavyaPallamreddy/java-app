@@ -1,0 +1,56 @@
+pipeline{
+    agent any
+    environment {
+        PATH = "$PATH:/opt/maven/bin"
+    }
+    stages{
+       stage('GetCode'){
+            steps{
+                git 'https://github.com/KavyaPallamreddy/maven-webapp.git'
+            }
+         } 
+         stage('Compile'){
+            steps{
+                sh 'mvn compile'
+            }
+         }
+         stage('Test'){
+            steps{
+                sh 'mvn test-compile'
+            }
+         }
+       stage('Build'){
+            steps{
+                sh 'mvn clean package'
+            }
+         }
+         stage('deploy'){
+            steps{
+                sh 'mvn clean install'
+            }
+         }
+        stage('Upload War To Nexus'){
+            steps{
+                script{
+
+                    nexusArtifactUploader artifacts: [
+                                                       [
+                                                         artifactId: 'maven-webapp', 
+                                                         classifier: '', 
+                                                         file: 'target/maven-webapp.war',
+                                                         type: 'war'
+                                                        ]
+                                                      ], 
+                                                      credentialsId: 'admin', 
+                                                      groupId: 'com.prlcompany', 
+                                                      nexusUrl: '35.163.208.213:8081', 
+                                                      nexusVersion: 'nexus3', 
+                                                      protocol: 'http', 
+                                                      repository: 'simpleapp-release', 
+                                                      version: '1.0.0'
+                    }
+            }
+        }
+       
+    }
+}
